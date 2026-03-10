@@ -26,8 +26,7 @@ merge_sort:
     
 	jal merge_sort			 # mergeSort(a + half, size - half);
 	
-# PREPARE	
-
+# PREPARE For MERGE
 	move $a0, $s0            # $s0 = base address of vector = $a0
     move $a1, $s1            # $s1 = $a1 = size 
 	jal merge				 #  merge(a, size);
