@@ -1,56 +1,144 @@
 merge:
-	subu $sp, $sp, 48	# Allocate 16 bytes of stack space 
-	sw $ra, 44($sp)	  		 
-	# store the seach-subrutine (this one) return adress
-	# save base adress for array to be able to use it in different calls
-	sw $s0, 40($sp)		# base adress for vector = $s0
-	sw $s1, 36($sp)						  # size = $s1
+	subu $sp, $sp, 52
+    sw $ra, 48($sp)
+    sw $s0, 44($sp)
+    sw $s1, 40($sp)
+    sw $s2, 36($sp)
+    sw $s3, 32($sp)
+    sw $s4, 28($sp)
+    sw $s5, 24($sp)
+    sw $s6, 20($sp)
 	
-	move $s0, $a0			# base = $t0
-	move $s1, $a1			# size = $t1
+	move $s0, $a0			# base a[] = $s0
+	move $s1, $a1			# size = $s1
 	
-	
-# half = $t2
-	div $t2, $s1, 2    		# half = $t2
+# half = $s2
+	div $s2, $s1, 2    		# half = $s2
 
-# b[] = $t3 
-	sll $t3, $s1, 2         # $t4 = size * 4 
-	subu $sp, $sp, $t3      # allocate b[] on stack
-	move $t3, $sp           # $t3 = base address of b[]
-	move $s3, $t3
+# b[] = $s3 
+	sll $t0, $s1, 2         # $t0 = size * 4($t3 is teh size we need for b[])
+	subu $sp, $sp, $t0      # allocate $t0 space b[] on stack
+	move $s3, $sp           # $s3 = base address of b[]
 	
 # i = $t4
 	li $t4, 0
 	
-m_for: 
-	bge $t4, $s1, m_end_for
+m_for:
+    bge  $t4, $s1, m_end_for
+    sll  $t0, $t4, 2        # i * 4
+    addu $t1, $s0, $t0      # address of a[i]
+    lw   $t2, 0($t1)        # t2 = a[i]
+    addu $t3, $s3, $t0      # address of b[i]
+    sw   $t2, 0($t3)        # b[i] = a[i]
+    addi $t4, $t4, 1        # i++
+    j    m_for
+	
+# $s0 = base address of a[]
+# $s1 = size
+# $s2 = half
+# $s3 = base address of b[]
+# $s4 = i
+# $s5 = j
+# $s6 = k
 
-	lw $t5, 0($s0)		#t4=a[i]
-	sw $t5, 0($t3) 		#v[i]=a[i]
+
+# this restores some values to continue the merge
+m_end_for:
+    li   $s4, 0             # i = 0
+    move $s5, $s2           # j = half
+    li   $s6, 0             # k = 0
+	
+m_while1: #  while (i < half && j < size)
+	bge $s4, $s2, m_while2 # i < half
+	bge $s5, $s1, m_while2 # j < size
+	
+# Load b[i] = $s3[$s4] in to $t1
+    sll  $t0, $s4, 2         # i * 4
+    addu $t0, $s3, $t0       # address of b[i]
+    lw   $t1, 0($t0)         # $t1 = b[i]
+	
+# Load b[j] = $s3[$s5] in to $t3
+	sll  $t2, $s5, 2         # j * 4
+    addu $t2, $s3, $t2       # address of b[j]
+    lw   $t3, 0($t2)         # $t3 = b[j]
+	
+	bgt  $t1, $t3, m_else     # if b[i] > b[j], go to else
 	 
-	addi $s0 $s0, 4 	# move to next element in v[]
-	addi $t3 $t3, 4		# move to next element in a[]
-	addi $t4, $t4, 1	# i++
-	
-	j m_for
-	
-m_end_for: 
-	move $a0, $s3
-	move $a1, $s1
-	
-	jal print_array
 
-	j m_return
+m_if: # b[i] <= b[j]
+	move $t4, $s4            # i
+    addi $s4, $s4, 1         # i++
+    j    m_end_if
 
 
+m_else:  # b[i] > b[j]
+    move $t4, $s5            # j
+	addi $s5, $s5, 1         # j++
+	
+m_end_if:
+	sll $t0, $t4, 2 		# index * 4
+	addu $t0, $s3, $t0
+	lw, $t1, 0($t0) 		# Load b[index]
+	sll  $t2, $s6, 2        # k * 4
+    addu $t2, $s0, $t2
+    sw   $t1, 0($t2)        # a[k] = b[index]
+    
+    addi $s6, $s6, 1         # k++
+	j 	 m_while1
+
+
+# $s0 = base address of a[]
+# $s1 = size
+# $s2 = half
+# $s3 = base address of b[]
+# $s4 = i
+# $s5 = j
+# $s6 = k
+
+m_while2: # Task a[k] = b[i]    IF: while (i < half)
+    bge  $s4, $s2, m_while3
+    
+    sll  $t0, $s4, 2		# calculate the index based i * 4 = $t0
+    addu $t0, $s3, $t0		# save the start adress of b[i]
+    lw   $t1, 0($t0)        # save value of int b[i] in $t1
+    
+    sll  $t2, $s6, 2		# calculate the index k * 4 = $t2
+    addu $t2, $s0, $t2		# save the start adress of a[k]
+    
+    sw   $t1, 0($t2)        # a[k] = b[i] / copy the numbers over
+    addi $s4, $s4, 1        # i++
+    addi $s6, $s6, 1        # k++
+    j    m_while2
+	
+	
+m_while3: # TASK: a[k] = b[j]   IF: while (j < size)
+    bge  $s5, $s1, m_return
+    
+    sll  $t0, $s5, 2		# calculate the index based j * 4 = $t0
+    addu $t0, $s3, $t0		# save the start adress of b[j]
+    lw   $t1, 0($t0)        # b[j] save the value of b[j]
+    
+    sll  $t2, $s6, 2		# calculate the index based k * 4 = $t2
+    addu $t2, $s0, $t2		# save the start adress of a[k]
+    
+    sw   $t1, 0($t2)        # a[k] = b[j]
+    addi $s5, $s5, 1        # j++
+    addi $s6, $s6, 1        # k++
+    j    m_while3
+	
+	
 m_return:
-	sll $t3, $s1, 2			# recalculate size * 4
-	addu $sp, $sp, $t3		# FREE b[] space first
-	
-	lw $ra, 44($sp)			# Restore the return address from the stack back into $ra
-	lw $s0, 40($sp)
-	lw $s1, 36($sp)
-	addu $sp, $sp, 48 		# Deallocate the 16 bytes of stack space (restore stack pointer)
+    sll  $t3, $s1, 2 		# calculate the size of b[] (to now how much we used9
+    addu $sp, $sp, $t3      # free b[] space
 
-	jr $ra 					# Jump back
+    lw $s6, 20($sp)         # restore s0-s6 and $ra before returning
+    lw $s5, 24($sp)
+    lw $s4, 28($sp)
+    lw $s3, 32($sp)
+    lw $s2, 36($sp)
+    lw $s1, 40($sp)
+    lw $s0, 44($sp)
+    lw $ra, 48($sp)
+    addu $sp, $sp, 52 		# remove shadow space
+    jr $ra
 	
