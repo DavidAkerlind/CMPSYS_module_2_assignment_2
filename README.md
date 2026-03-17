@@ -1,18 +1,5 @@
-\# Done:
+# DONE
+- Part 1 is done and now merge sort works
 
-# 
-
-
-
-merge.s now makes a copy of the Array that is passed as an argument
-
-
-
-
-
-right now it just print the array that is passed
-
-
-
-then 
-
+# TODO
+- Part 2 cache analasysis
