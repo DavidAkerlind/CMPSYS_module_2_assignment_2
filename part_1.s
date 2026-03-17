@@ -37,3 +37,4 @@ main:
 	addu $sp, $sp, 16
 	li $v0, 10 
 	syscall
+	
