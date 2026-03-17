@@ -1,5 +1,6 @@
 print_array:
-	subu $sp, $sp, 36 		# make some space for storing and printing
+	li $t1, 36
+	subu $sp, $sp, $t1 		# make some space for storing and printing
 	
 	sw $ra, 20($sp)	  		# store the seach-subrutine (this one) return adress
 
