@@ -5,6 +5,7 @@ size: .word 20
 format: .asciiz "%d " 	# Format for print.s
 new_line: .asciiz "\n"
 
+
 	.text
 	.globl main
 	.include "print.s"
@@ -28,9 +29,9 @@ main:
 	
 # Call search function (passing 2 arguments)	jal print_array
 	# Print array call (int a[], int size) 
-	#la $a0, vector          # $a0 = base address of array
-	#lw $a1, size
-	#jal print_array
+	la $a0, vector          # $a0 = base address of array
+	lw $a1, size
+	jal print_array
 
 # End program
 	addu $sp, $sp, 16
