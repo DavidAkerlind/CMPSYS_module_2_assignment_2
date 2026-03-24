@@ -1,7 +1,7 @@
 	.data
-vector: .word 4,5,2,-2,1,6,7,9,-5,10,99,32,98,42,12,41,29,22,77,62
-#vector: .word 4,5,2,-2,1,6,7,9,-5,10
-size: .word 20
+#vector: .word 4,5,2,-2,1,6,7,9,-5,10,99,32,98,42,12,41,29,22,77,62
+vector: .word 4,5,2,-2,1,6,7,9,-5,10,11,85,5432,541
+size: .word 14
 format: .asciiz "%d " 	# Format for print.s
 new_line: .asciiz "\n"
 
@@ -9,9 +9,9 @@ new_line: .asciiz "\n"
 	.text
 	.globl main
 	.include "print.s"
-	.include "print_array.s"
-	.include "merge_sort.s"
-	.include "merge.s"
+	#.include "print_array.s"
+	#.include "merge_sort.s"
+	#.include "merge.s"
 	
 
 print_array:
